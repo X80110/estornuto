@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La meva Playlist</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #121212;
+            color: #fff;
+            margin: 0;
+            padding: 0 15px;
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #333;
+        }
+        .playlist-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+        }
+        .metadata {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin-left: 15px;
+            flex: 1;
+        }
+        .metadata img {
+            width: 60px;
+            height: 60px;
+            border-radius: 5px;
+        }
+        .metadata div {
+            margin-bottom: 5px;
+        }
+        audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+        @media (max-width: 600px) {
+            .metadata img {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+</head>
+<body>
+    <h1>La meva Playlist</h1>
+    <div id="playlist"></div>
+
+    <script>
+        fetch('https://exemple.com/path/to/mp3Files.json')
+            .then(response => response.json())
+            .then(files => {
+                const playlistContainer = document.getElementById('playlist');
+
+                files.forEach(file => {
+                    const audio = new Audio(file);
+                    const container = document.createElement('div');
+                    container.className = 'playlist-item';
+
+                    const audioElement = document.createElement('audio');
+                    audioElement.controls = true;
+                    audioElement.src = file;
+
+                    const metadataContainer = document.createElement('div');
+                    metadataContainer.className = 'metadata';
+
+                    container.appendChild(metadataContainer);
+                    container.appendChild(audioElement);
+                    playlistContainer.appendChild(container);
+
+                    jsmediatags.read(file, {
+                        onSuccess: function(tag) {
+                            const { title, artist, picture } = tag.tags;
+                            const titleElement = document.createElement('div');
+                            titleElement.textContent = title || 'Títol desconegut';
+
+                            const artistElement = document.createElement('div');
+                            artistElement.textContent = artist || 'Artista desconegut';
+
+                            if (picture) {
+                                const base64String = arrayBufferToBase64(picture.data);
+                                const imgElement = document.createElement('img');
+                                imgElement.src = `data:${picture.format};base64,${base64String}`;
+                                metadataContainer.appendChild(imgElement);
+                            }
+
+                            metadataContainer.appendChild(titleElement);
+                            metadataContainer.appendChild(artistElement);
+                        },
+                        onError: function(error) {
+                            console.log(error);
+                        }
+                    });
+                });
+            })
+            .catch(error => console.log('Error carregant els fitxers MP3:', error));
+
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+    </script>
+</body>
+</html>
