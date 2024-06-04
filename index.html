@@ -59,7 +59,7 @@
     <div id="playlist"></div>
 
     <script>
-        fetch('https://exemple.com/path/to/mp3Files.json')
+        fetch('playlist.json')
             .then(response => response.json())
             .then(files => {
                 const playlistContainer = document.getElementById('playlist');
