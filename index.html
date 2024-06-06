@@ -3,20 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La meva Playlist</title>
+    <title>ESTORNUTO</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             background-color: #121212;
             color: #fff;
             margin: 0;
-            padding: 0 15px;
+            padding: 0;
             box-sizing: border-box;
         }
         h1 {
             text-align: center;
             padding: 20px 0;
             border-bottom: 1px solid #333;
+            margin: 0;
+        }
+        .playlist-container {
+            padding: 20px;
         }
         .playlist-item {
             display: flex;
@@ -25,6 +29,10 @@
             padding: 10px;
             background-color: #1e1e1e;
             border-radius: 10px;
+            transition: background-color 0.3s;
+        }
+        .playlist-item:hover {
+            background-color: #333;
         }
         .metadata {
             display: flex;
@@ -41,9 +49,21 @@
         .metadata div {
             margin-bottom: 5px;
         }
+        .metadata .title {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        .metadata .artist {
+            color: #b3b3b3;
+        }
         audio {
             width: 100%;
             margin-top: 10px;
+            border: none;
+        }
+        audio::-webkit-media-controls-panel {
+            background-color: #333;
+            border-radius: 5px;
         }
         @media (max-width: 600px) {
             .metadata img {
@@ -56,7 +76,7 @@
 </head>
 <body>
     <h1>La meva Playlist</h1>
-    <div id="playlist"></div>
+    <div class="playlist-container" id="playlist"></div>
 
     <script>
         fetch('playlist.json')  // URL del teu fitxer JSON
@@ -86,9 +106,11 @@
                         onSuccess: function(tag) {
                             const { title, artist, picture } = tag.tags;
                             const titleElement = document.createElement('div');
+                            titleElement.className = 'title';
                             titleElement.textContent = title || fileName;
 
                             const artistElement = document.createElement('div');
+                            artistElement.className = 'artist';
                             artistElement.textContent = artist || 'Artista desconegut';
 
                             if (picture) {
@@ -104,10 +126,12 @@
                         onError: function(error) {
                             console.log(error);
                             const titleElement = document.createElement('div');
+                            titleElement.className = 'title';
                             titleElement.textContent = fileName;
 
                             const artistElement = document.createElement('div');
-                            artistElement.textContent = 'Artista desconegut';
+                            artistElement.className = 'artist';
+                            artistElement.textContent = 'Estornuto';
 
                             metadataContainer.appendChild(titleElement);
                             metadataContainer.appendChild(artistElement);
