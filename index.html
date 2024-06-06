@@ -59,19 +59,21 @@
     <div id="playlist"></div>
 
     <script>
-        fetch('https://github.com/X80110/estornuto/blob/b111c6b27995df1e74071052310657a196175b35/playlist.json')
+        fetch('playlist.json')  // URL del teu fitxer JSON
             .then(response => response.json())
             .then(files => {
                 const playlistContainer = document.getElementById('playlist');
 
                 files.forEach(file => {
-                    const audio = new Audio(file);
+                    const filePath = file;
+                    const fileName = filePath.split('/').pop().replace('.mp3', '');
+                    const audio = new Audio(filePath);
                     const container = document.createElement('div');
                     container.className = 'playlist-item';
 
                     const audioElement = document.createElement('audio');
                     audioElement.controls = true;
-                    audioElement.src = file;
+                    audioElement.src = filePath;
 
                     const metadataContainer = document.createElement('div');
                     metadataContainer.className = 'metadata';
@@ -80,11 +82,11 @@
                     container.appendChild(audioElement);
                     playlistContainer.appendChild(container);
 
-                    jsmediatags.read(file, {
+                    jsmediatags.read(filePath, {
                         onSuccess: function(tag) {
                             const { title, artist, picture } = tag.tags;
                             const titleElement = document.createElement('div');
-                            titleElement.textContent = title || 'Títol desconegut';
+                            titleElement.textContent = title || fileName;
 
                             const artistElement = document.createElement('div');
                             artistElement.textContent = artist || 'Artista desconegut';
@@ -101,6 +103,14 @@
                         },
                         onError: function(error) {
                             console.log(error);
+                            const titleElement = document.createElement('div');
+                            titleElement.textContent = fileName;
+
+                            const artistElement = document.createElement('div');
+                            artistElement.textContent = 'Artista desconegut';
+
+                            metadataContainer.appendChild(titleElement);
+                            metadataContainer.appendChild(artistElement);
                         }
                     });
                 });
