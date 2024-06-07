@@ -6,33 +6,51 @@
     <title>ESTORNUTO</title>
     <style>
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background-color: #121212;
-            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #F2F2F7;
+            color: #000000;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
             box-sizing: border-box;
         }
         h1 {
             text-align: center;
-            padding: 20px 0;
-            border-bottom: 1px solid #333;
-            margin: 0;
+            padding: 20px;
+            margin: 20px 0;
+            color: #FFFFFF;
+            background-color: #007AFF;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
         }
         .playlist-container {
+            width: 90%;
+            max-width: 600px;
             padding: 20px;
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
         }
         .playlist-item {
             display: flex;
             align-items: center;
             margin-bottom: 20px;
-            padding: 10px;
-            background-color: #1e1e1e;
-            border-radius: 10px;
-            transition: background-color 0.3s;
+            padding: 15px;
+            background-color: #F9F9F9;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
         .playlist-item:hover {
-            background-color: #333;
+            background-color: #EFEFEF;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
         .metadata {
             display: flex;
@@ -41,45 +59,38 @@
             margin-left: 15px;
             flex: 1;
         }
-        .metadata img {
-            width: 60px;
-            height: 60px;
-            border-radius: 5px;
-        }
-        .metadata div {
+        .metadata .title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333333;
             margin-bottom: 5px;
         }
-        .metadata .title {
-            font-size: 1.1em;
-            font-weight: bold;
-        }
         .metadata .artist {
-            color: #b3b3b3;
+            color: #555555;
         }
         audio {
             width: 100%;
-            margin-top: 10px;
-            border: none;
+            margin-top: 15px;
+            background-color: #F2F2F7;
+            border-radius: 12px;
         }
         audio::-webkit-media-controls-panel {
-            background-color: #333;
-            border-radius: 5px;
+            background-color: #FFFFFF;
+            border-radius: 12px;
         }
         @media (max-width: 600px) {
-            .metadata img {
-                width: 50px;
-                height: 50px;
+            .metadata {
+                margin-left: 10px;
             }
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
 </head>
 <body>
     <h1>ESTORNUTO</h1>
     <div class="playlist-container" id="playlist"></div>
 
     <script>
-        fetch('playlist.json')  // URL del teu fitxer JSON
+        fetch('playlist.json')  // URL del fitxer JSON
             .then(response => response.json())
             .then(files => {
                 const playlistContainer = document.getElementById('playlist');
@@ -87,7 +98,6 @@
                 files.forEach(file => {
                     const filePath = file;
                     const fileName = filePath.split('/').pop().replace('.mp3', '');
-                    const audio = new Audio(filePath);
                     const container = document.createElement('div');
                     container.className = 'playlist-item';
 
@@ -98,58 +108,23 @@
                     const metadataContainer = document.createElement('div');
                     metadataContainer.className = 'metadata';
 
+                    const titleElement = document.createElement('div');
+                    titleElement.className = 'title';
+                    titleElement.textContent = fileName;
+
+                    const artistElement = document.createElement('div');
+                    artistElement.className = 'artist';
+                    artistElement.textContent = 'ESTORNUTO';
+
+                    metadataContainer.appendChild(titleElement);
+                    metadataContainer.appendChild(artistElement);
+
                     container.appendChild(metadataContainer);
                     container.appendChild(audioElement);
                     playlistContainer.appendChild(container);
-
-                    jsmediatags.read(filePath, {
-                        onSuccess: function(tag) {
-                            const { title, artist, picture } = tag.tags;
-                            const titleElement = document.createElement('div');
-                            titleElement.className = 'title';
-                            titleElement.textContent = title || fileName;
-
-                            const artistElement = document.createElement('div');
-                            artistElement.className = 'artist';
-                            artistElement.textContent = artist || 'ESTORNUTO';
-
-                            if (picture) {
-                                const base64String = arrayBufferToBase64(picture.data);
-                                const imgElement = document.createElement('img');
-                                imgElement.src = `data:${picture.format};base64,${base64String}`;
-                                metadataContainer.appendChild(imgElement);
-                            }
-
-                            metadataContainer.appendChild(titleElement);
-                            metadataContainer.appendChild(artistElement);
-                        },
-                        onError: function(error) {
-                            console.log(error);
-                            const titleElement = document.createElement('div');
-                            titleElement.className = 'title';
-                            titleElement.textContent = fileName;
-
-                            const artistElement = document.createElement('div');
-                            artistElement.className = 'artist';
-                            artistElement.textContent = 'Estornuto';
-
-                            metadataContainer.appendChild(titleElement);
-                            metadataContainer.appendChild(artistElement);
-                        }
-                    });
                 });
             })
             .catch(error => console.log('Error carregant els fitxers MP3:', error));
-
-        function arrayBufferToBase64(buffer) {
-            let binary = '';
-            const bytes = new Uint8Array(buffer);
-            const len = bytes.byteLength;
-            for (let i = 0; i < len; i++) {
-                binary += String.fromCharCode(bytes[i]);
-            }
-            return window.btoa(binary);
-        }
     </script>
 </body>
 </html>
