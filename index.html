@@ -6,9 +6,9 @@
     <title>ESTORNUTO</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #F2F2F7;
-            color: #000000;
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: #FFFFFF;
             margin: 0;
             padding: 0;
             display: flex;
@@ -23,18 +23,19 @@
             padding: 20px;
             margin: 20px 0;
             color: #FFFFFF;
-            background-color: #007AFF;
+            background: linear-gradient(45deg, #00FFA3, #DC1FFF);
             border-radius: 12px;
             width: 90%;
             max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0, 255, 163, 0.5), 0 4px 20px rgba(220, 31, 255, 0.5);
         }
         .playlist-container {
             width: 90%;
             max-width: 600px;
             padding: 20px;
-            background-color: #FFFFFF;
+            background-color: #1E1E1E;
             border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
         }
@@ -43,14 +44,15 @@
             align-items: center;
             margin-bottom: 20px;
             padding: 15px;
-            background-color: #F9F9F9;
+            background-color: #2A2A2A;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
             transition: background-color 0.3s, box-shadow 0.3s;
+            cursor: pointer;
         }
         .playlist-item:hover {
-            background-color: #EFEFEF;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            background-color: #333333;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
         }
         .metadata {
             display: flex;
@@ -62,48 +64,111 @@
         .metadata .title {
             font-size: 1.2em;
             font-weight: bold;
-            color: #333333;
+            color: #00FFA3;
             margin-bottom: 5px;
         }
         .metadata .artist {
-            color: #555555;
+            color: #DC1FFF;
+        }
+        .control-button {
+            background: linear-gradient(45deg, #00FFA3, #DC1FFF);
+            border: none;
+            color: #FFFFFF;
+            padding: 10px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
         }
         audio {
+            display: none;
+        }
+        .player-bar {
+            position: fixed;
+            bottom: 0;
             width: 100%;
-            margin-top: 15px;
-            background-color: #F2F2F7;
-            border-radius: 12px;
+            background-color: #1E1E1E;
+            padding: 10px;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
         }
-        audio::-webkit-media-controls-panel {
-            background-color: #FFFFFF;
-            border-radius: 12px;
+        .player-bar .controls {
+            display: flex;
+            align-items: center;
         }
-        @media (max-width: 600px) {
-            .metadata {
-                margin-left: 10px;
-            }
+        .player-bar .controls button {
+            background: linear-gradient(45deg, #00FFA3, #DC1FFF);
+            border: none;
+            color: #FFFFFF;
+            padding: 10px;
+            margin: 0 5px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+        .player-bar .controls button:hover {
+            background: linear-gradient(45deg, #00FFA3, #DC1FFF);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        .player-bar .current-song {
+            flex: 1;
+            text-align: center;
+            color: #FFFFFF;
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
     <h1>ESTORNUTO</h1>
     <div class="playlist-container" id="playlist"></div>
+    <div class="player-bar">
+        <button id="prev">⏮</button>
+        <div class="current-song" id="current-song">Selecciona una cançó</div>
+        <button id="play-pause">⏯</button>
+        <button id="next">⏭</button>
+    </div>
 
     <script>
+        const playlistContainer = document.getElementById('playlist');
+        const currentSongElement = document.getElementById('current-song');
+        const playPauseButton = document.getElementById('play-pause');
+        const prevButton = document.getElementById('prev');
+        const nextButton = document.getElementById('next');
+        let audioElements = [];
+        let currentIndex = -1;
+        let currentAudio = null;
+
         fetch('playlist.json')  // URL del fitxer JSON
             .then(response => response.json())
             .then(files => {
-                const playlistContainer = document.getElementById('playlist');
-
-                files.forEach(file => {
+                files.forEach((file, index) => {
                     const filePath = file;
                     const fileName = filePath.split('/').pop().replace('.mp3', '');
                     const container = document.createElement('div');
                     container.className = 'playlist-item';
+                    container.dataset.index = index;
 
                     const audioElement = document.createElement('audio');
-                    audioElement.controls = true;
                     audioElement.src = filePath;
+
+                    audioElement.addEventListener('play', () => {
+                        audioElements.forEach((audio, i) => {
+                            if (audio !== audioElement) {
+                                audio.pause();
+                            }
+                        });
+                        currentIndex = index;
+                        currentAudio = audioElement;
+                        currentSongElement.textContent = fileName;
+                        playPauseButton.textContent = '⏸';
+                        updatePlayPauseButton(index, true);
+                    });
+
+                    audioElement.addEventListener('pause', () => {
+                        updatePlayPauseButton(index, false);
+                    });
 
                     const metadataContainer = document.createElement('div');
                     metadataContainer.className = 'metadata';
@@ -119,12 +184,74 @@
                     metadataContainer.appendChild(titleElement);
                     metadataContainer.appendChild(artistElement);
 
+                    const controlButton = document.createElement('button');
+                    controlButton.className = 'control-button';
+                    controlButton.textContent = '⏯';
+                    controlButton.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        if (audioElement.paused) {
+                            audioElement.play();
+                        } else {
+                            audioElement.pause();
+                        }
+                    });
+
+                    container.addEventListener('click', () => {
+                        if (audioElement.paused) {
+                            audioElement.play();
+                        } else {
+                            audioElement.pause();
+                        }
+                    });
+
                     container.appendChild(metadataContainer);
+                    container.appendChild(controlButton);
                     container.appendChild(audioElement);
                     playlistContainer.appendChild(container);
+
+                    audioElements.push(audioElement);
                 });
             })
             .catch(error => console.log('Error carregant els fitxers MP3:', error));
+
+        playPauseButton.addEventListener('click', () => {
+            if (currentAudio) {
+                if (currentAudio.paused) {
+                    currentAudio.play();
+                    playPauseButton.textContent = '⏸';
+                } else {
+                    currentAudio.pause();
+                    playPauseButton.textContent = '⏯';
+                }
+            }
+        });
+
+        prevButton.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                playAudioAtIndex(currentIndex);
+            }
+        });
+
+        nextButton.addEventListener('click', () => {
+            if (currentIndex < audioElements.length - 1) {
+                currentIndex++;
+                playAudioAtIndex(currentIndex);
+            }
+        });
+
+        function playAudioAtIndex(index) {
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+            currentAudio = audioElements[index];
+            currentAudio.play();
+        }
+
+        function updatePlayPauseButton(index, isPlaying) {
+            const controlButton = playlistContainer.querySelector(`.playlist-item[data-index="${index}"] .control-button`);
+            controlButton.textContent = isPlaying ? '⏸' : '⏯';
+        }
     </script>
 </body>
 </html>
